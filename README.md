@@ -1,10 +1,16 @@
-# Getting Started with Create React App
+# Democracy Index 2020 SVG World Map 
+
+This is a single page React Web App demonstrating SVG animation.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
 In the project directory, you can run:
+
+### `yarn install`
+
+Installs or updates necessary node modules.
 
 ### `yarn start`
 
