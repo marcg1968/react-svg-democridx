@@ -1,0 +1,56 @@
+.App {
+    text-align: center;
+}
+
+.svg-cont {
+    position: relative;
+}
+.svgmap-cont {
+    display: flex;
+    flex-direction: row;
+}
+.svg-countrylist {
+    flex: 7;
+}
+.svg-map, .svg-country-profile {
+    margin-top: 1.55rem;
+}
+.svg-country-profile {
+    flex: 3;
+}
+.svg-country-profile-sel {
+    padding: 1.55rem 0.1rem 3rem 0.1rem;
+}
+
+.zoomer {
+    display: flex;
+    flex-direction: row;
+    border: 1px solid gray;
+    border-radius: .67rem;
+    position: absolute;
+    z-index: 2;
+    top: -1rem;
+    right: 0;
+    background: rgba(128, 128, 128, .6);
+
+}
+.zoomerPc, .zoomerMinus0, .zoomerPlus0, .zoomerMinus, .zoomerPlus {
+    flex: 1;
+    padding: .33rem .67rem;
+    margin: .2rem;
+    border-radius: 1rem;
+}
+.zoomerMinus, .zoomerPlus {
+    cursor: pointer;
+    background: white;
+}
+.zoomerPc {
+    align-self: center;
+    padding-right: .33rem;
+    font-size: .67rem;
+}
+
+footer.main {
+    text-align: left;
+    margin: 2.5rem 1rem;
+}

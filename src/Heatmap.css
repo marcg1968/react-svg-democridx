@@ -1,0 +1,84 @@
+/* Heatmap.css */
+
+div.heatmap-title {
+    margin-top: .5rem;
+    padding: .5rem 1rem .2rem;
+    background: rgba(185, 185, 185, .5);
+}
+
+div.heatmap-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+div.heatmap-col {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(185, 185, 185, .5);
+    padding-bottom: .5rem;
+}
+div.heatmap-col:last-child {}
+
+.colour-col {
+    flex: 1 1 0%;
+    display: flex;
+    background: linear-gradient(to right, rgb(255, 0, 0), rgb(255, 200, 0) 100%);
+}
+.col1 > .colour-col {
+    background: linear-gradient(to right, hsl(0, 100%, 50%), hsl(47, 100%, 50%) 100%);
+}
+.col2 > .colour-col {
+    background: linear-gradient(to right, hsl(48, 100%, 50%), hsl(95, 100%, 50%) 100%);
+}
+.col3 > .colour-col {
+    background: linear-gradient(to right, hsl(96, 100%, 50%), hsl(143, 100%, 50%) 100%);
+}
+.col4 > .colour-col {
+    background: linear-gradient(to right, hsl(144, 100%, 50%), hsl(195, 100%, 50%) 100%);
+}
+.col5 > .colour-col {
+    background: linear-gradient(to right, hsl(196, 100%, 50%), hsl(240, 100%, 50%) 100%);
+}
+
+.label-col {
+    flex: 1 1 0%;
+    display: flex;
+}
+.col1 > .label-col {
+    border-left: 1px solid rgb(0, 0, 0);
+    margin-left: 0.2rem;
+    padding-left: 0.67rem;
+    /*border: 1px dashed forestgreen;*/
+}
+.col2 > .label-col {
+    justify-content: flex-end;
+    border-left: 1px solid rgb(0, 0, 0);
+    margin-left: 0.6rem;
+    padding-right: 1rem;
+    /*border: 1px dashed magenta;*/
+}
+.col3 > .label-col {
+    display: flex;
+    border-left: 1px solid rgb(0, 0, 0);
+    margin-left: 0.6rem;
+}
+.col4 > .label-col {
+    border-left: 1px solid rgb(0, 0, 0);
+    margin-left: 0.6rem;
+    padding-left: 0.27rem;
+}
+.col5 > .label-col {
+    justify-content: flex-end;
+    border-left: 1px solid rgb(0, 0, 0);
+    margin-left: 0.6rem;
+    padding-right: 0.67rem;
+}
+
+.rating-col {
+    flex: 1 1 0%;
+    text-align: left;
+    display: flex;
+}
+
+
