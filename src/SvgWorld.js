@@ -6,30 +6,26 @@ import React, {
 } from 'react'
 import {
     easeInOutSine,
-    distributionEaseInOutSine,
-    heatMapColorforValue, abbrevCountryName,
+    heatMapColorforValue,
+    abbrevCountryName,
+    loadDemocIdxJson,
+    loadCountriesSVGDataJson,
 } from './functions'
 import {
-    BLACK,
     breakpoints,
     CRIMSON,
     CRIMSON_HALF,
-    DARKGREY,
     GREY,
     GREY_HALF,
-    mainTitle,
+    mainTitle, progressiveLoading,
     stroke,
     strokeWidth,
+    totalLoadingTimeMs,
     ZOOM,
 } from './constants'
 import Heatmap from './Heatmap'
-import './Heatmap.css'
-import Debug from "./Debug"
-import Loading from "./Loading"
-
-/* in public/ subdir */
-const srcJson = 'countries.json'
-const democIdxJson = 'worldbank_democracy_index.json'
+import Loading from './Loading'
+import CountryProfile from "./CountryProfile";
 
 class SvgWorld extends Component {
 
@@ -58,7 +54,6 @@ class SvgWorld extends Component {
         this.percent = ZOOM
         this.startWidth = 0
         this.targetWidth = 0
-        this.targetHeight = 0
         this.boundingBox = null
         this.targetCentreX = null
         this.targetCentreY = null
@@ -77,49 +72,60 @@ class SvgWorld extends Component {
             viewBox: [0, 0, width, height],
             width,
             height,
-        }) /* standard */
+        })
 
-        // const totalLoadingTimeMs = 5000
-        const totalLoadingTimeMs = 5
+        /* load democracy index data from local file */
+        const { democIdx, ranking } = await loadDemocIdxJson()
+        this.setState({ democIdx, ranking })
 
-        await fetch(democIdxJson)
-            .then(r => r.json())
-            .then(data => {
-                let democIdx = {}
-                data.map(arr => {
-                    democIdx[arr[0]] = arr[1]
-                })
-                const ranking = Object
-                    .keys(democIdx)
-                    .map(key => ({ code: key, idx: democIdx[key] }))
-                    .sort((a,b) => b.idx - a.idx)
-                this.setState({ democIdx, ranking })
+        /* load SVG country definitions from local file */
+        const data = await loadCountriesSVGDataJson()
 
-            })
-        await fetch(srcJson)
-            .then(r => r.json())
-            .then(data => {
-                this.setState({ total: data.length })
-                let countryRefs = {}
-                data.reduce((prev, current, i, self) => {
-
-                    const { id } = current
-                    countryRefs[id] = createRef()
-
-                    const delay = easeInOutSine((i+1)/self.length) * totalLoadingTimeMs
-                    // console.log(26, (i+1)/self.length, delay)
-                    return setTimeout(() => this.setState(({countries}) => {
-                        return {
-                            countries: [...countries, current]
-                        }
-                    }), delay)
-                }, null)
-                this.setState({countryRefs})
-            })
+        /* The first option creates the illusion of progressive "building blocks" loading of the countries */
+        /* The second option loads countries in one hit */
+        /* Controlled by bool constant: progressiveLoading */
+        if (progressiveLoading) this.loadCountriesCumulatively(data)
+        if (!progressiveLoading) this.loadCountriesInOneHit(data)
 
     }
 
     componentWillUnmount = () => {}
+
+    loadCountriesCumulatively = data => {
+        let countryRefs = {}
+        data.reduce((prev, current, i, self) => {
+            const { id } = current
+            countryRefs[id] = createRef()
+
+            /* progressively add country definitions - creates a cumulative "building block" effect */
+            const delay = easeInOutSine((i+1)/self.length) * totalLoadingTimeMs
+            return setTimeout(() => this.setState(({countries}) => {
+                return {
+                    countries: [...countries, current]
+                }
+            }), delay)
+
+        }, null)
+        this.setState({
+            countryRefs,
+            total: data.length,
+        })
+    }
+
+    loadCountriesInOneHit = data => {
+        let countryRefs = {}
+        const countries = data.reduce((prev, current, i, self) => {
+            const { id } = current
+            countryRefs[id] = createRef()
+            prev = [...prev, current]
+            return prev
+        }, [])
+        this.setState({
+            countries,
+            countryRefs,
+            total: data.length,
+        })
+    }
 
     handleCentering = () => {
         const {
@@ -147,7 +153,6 @@ class SvgWorld extends Component {
                 ? [
                     prevState.selected,
                     ...prevState.selectedHistory.slice(0, 9),
-                    // ...prevState.selectedHistory,
                 ]
                 : []
             return {
@@ -320,12 +325,6 @@ class SvgWorld extends Component {
 
         const [, typ] = breakpoints.filter(([val, typ]) => rating < val).shift()
 
-        const place = selected
-            ? ranking.findIndex(e => e.code === selected)
-            : null
-
-        const styleBorderBottom = { borderBottom: `5px solid ${colour}` }
-
         const countryRectProps = {...boundingBox, sw: 0.1}
 
         // const zoomerMinus = zoom === 1
@@ -351,30 +350,12 @@ class SvgWorld extends Component {
             <MainContainer
                 mainTitle={mainTitle}
             >
-                <Debug
-                    len={len}
-                    boundingBox={boundingBox}
-                    zoom={zoom}
-                    viewBox={viewBox}
-                    viewBoxCtl={(i, val) => {
-                        this.setState(prevState => {
-                            let viewBox = prevState.viewBox
-                            viewBox[i] = val
-                            return { viewBox }
-                        })
-                    }}
-                    handleCentering={this.handleCentering}
-                    selectedHistory={selectedHistory}
-                    selected={selected}
-                />
-
                 <Loading
                     len={len}
                     total={total}
                     loadingText={'Loading ...'}
                     loadedText={'Loaded.'}
                 />
-
                 <div className={'svgmap-cont'}>
                     <div className={'svg-countrylist'}>
                         <CountryListing
@@ -494,44 +475,17 @@ class SvgWorld extends Component {
                         </svg>
                     </div>
 
-                    {/* TODO: refactor */}
-                    <div className={'svg-country-profile'}>
-                        {selected && (
-                            <div
-                                className={'svg-country-profile-sel'}
-                                style={{border: `1px solid ${GREY_HALF}`,}}
-                            >
-                                <div>
-                                    <span>{countries.find(e => e.id === selected).n}</span>
-                                    <span>{` (${selected}) `}</span>
-                                </div>
-                                {rating
-                                    ? (
-                                <div>
-                                    <div>&nbsp;&mdash;&nbsp;</div>
-                                    <div>
-                                        <span style={{...styleBorderBottom}}>{'democracy index: '}</span>
-                                        <span style={{...styleBorderBottom}}>{rating}</span>
-                                    </div>
-                                    <div>&nbsp;</div>
-                                    <div>{`# ${place} of ${total}`}</div>
-                                    <div>&nbsp;&mdash;&nbsp;</div>
-                                    <div>
-                                        <span style={{...styleBorderBottom}}>{` (${typ}) `}</span>
-                                    </div>
-                                </div>
-                                        )
-                                    : (
-                                        <div style={{ padding: '1rem 0.5rem', }}>(no data available)</div>
-                                    )
-                                }
-                            </div>
-                        )}
-                        &nbsp;
-                    </div>
-                </div>
+                    <CountryProfile
+                        selected={selected}
+                        countries={countries}
+                        rating={rating}
+                        colour={colour}
+                        total={total}
+                        ranking={ranking}
+                        typ={typ}
+                    />
 
-                <div className={'heatmap-title'}>{'Heat map scale:'}</div>
+                </div>
 
                 <Heatmap />
 

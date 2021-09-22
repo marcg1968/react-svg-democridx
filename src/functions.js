@@ -2,6 +2,8 @@
 
 import {
     MAX_NAME_LEN,
+    countriesSVGDataJson,
+    democIdxJson,
 } from './constants'
 
 export const easeInOutSine = n => -(Math.cos(Math.PI*n)-1)/2 /* from 0 to 1 */
@@ -32,4 +34,26 @@ export const abbrevCountryName = name => {
     return name
         .split(/\s+/)
         .reduce((prev,curr) => `${prev} ${curr}`.length <= 25 ? `${prev} ${curr}` : prev, '')
+}
+
+export const loadDemocIdxJson = async () => {
+    return await fetch(democIdxJson)
+        .then(r => r.json())
+        .then(data => {
+            let democIdx = {}
+            data.map(arr => {
+                democIdx[arr[0]] = arr[1]
+            })
+            const ranking = Object
+                .keys(democIdx)
+                .map(key => ({code: key, idx: democIdx[key]}))
+                .sort((a, b) => b.idx - a.idx)
+            return { democIdx, ranking }
+        })
+}
+
+export const loadCountriesSVGDataJson = async () => {
+    return await fetch(countriesSVGDataJson)
+        .then(r => r.json())
+
 }

@@ -19,3 +19,10 @@ export const breakpoints = [
     [.8, 'flawed democracy'],
     [1, 'full democracy'],
 ]
+/* JSON source files: in public/ subdir */
+export const countriesSVGDataJson = 'countries.json'
+export const democIdxJson = 'worldbank_democracy_index.json'
+// export const totalLoadingTimeMs = 5000
+export const totalLoadingTimeMs = 5
+export const progressiveLoading = true
+
