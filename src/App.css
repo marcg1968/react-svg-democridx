@@ -34,7 +34,7 @@
     background: rgba(128, 128, 128, .6);
 
 }
-.zoomerPc, .zoomerMinus0, .zoomerPlus0, .zoomerMinus, .zoomerPlus {
+.zoomerPc, .zoomerMinus0, .zoomerPlus0, .zoomerMinus, .zoomerPlus, .zoomerReset {
     flex: 1;
     padding: .33rem .67rem;
     margin: .2rem;
@@ -46,7 +46,16 @@
 }
 .zoomerPc {
     align-self: center;
-    padding-right: .33rem;
+    padding-right: .1rem;
+    font-size: .67rem;
+    border-radius: 0;
+    border-left: 1px solid #666;
+    margin: .2rem .2rem .2rem 0;
+}
+.zoomerReset {
+    cursor: pointer;
+    background: white;
+    align-self: center;
     font-size: .67rem;
 }
 

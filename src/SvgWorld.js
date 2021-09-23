@@ -15,7 +15,7 @@ import {
     CRIMSON,
     CRIMSON_HALF,
     GREY,
-    mainTitle, progressiveLoading,
+    mainTitle, MAX_BOUNDING_RECT_FACTOR, progressiveLoading,
     stroke,
     strokeWidth,
     totalLoadingTimeMs,
@@ -26,6 +26,7 @@ import Heatmap from './Heatmap'
 import Loading from './Loading'
 import CountryListing from './CountryListing'
 import CountryProfile from './CountryProfile'
+import Zoomer from "./Zoomer";
 
 class SvgWorld extends Component {
 
@@ -63,16 +64,8 @@ class SvgWorld extends Component {
 
     componentDidMount = async () => {
 
-        let {
-            width,
-            height,
-        } = this.props
-
-        this.setState({
-            viewBox: [0, 0, width, height],
-            width,
-            height,
-        })
+        /* initialise the SVG map width, viewbox */
+        this.init()
 
         /* load democracy index data from local file */
         const { democIdx, ranking } = await loadDemocIdxJson()
@@ -90,6 +83,26 @@ class SvgWorld extends Component {
     }
 
     componentWillUnmount = () => {}
+
+    init = (reset=false) => {
+        let {
+            width,
+            height,
+        } = this.props
+
+        if (reset) {
+            console.log(96, {props: this.props})
+            this.setState({ selected: null })
+            // return this.handleZoomChange(100, {x:0, y:0, width, height})
+            return this.handleZoomChange(0, {}, true)
+        }
+
+        this.setState({
+            viewBox: [0, 0, width, height],
+            width,
+            height,
+        })
+    }
 
     loadCountriesCumulatively = data => {
         let countryRefs = {}
@@ -127,26 +140,6 @@ class SvgWorld extends Component {
         })
     }
 
-    handleCentering = () => {
-        const {
-            viewBox,
-            boundingBox,
-        } = this.state
-        if (!boundingBox || !viewBox) return
-        const { x, y, width, height } = boundingBox || {}
-        console.log(101, {x, y, width, height})
-        const centre = { x: x + (width/2), y: y + (height/2) }
-        console.log(103, { centre })
-        this.setState(prevState => {
-            const { viewBox } = prevState
-            viewBox[0] = centre.x - (viewBox[2]/2)
-            viewBox[1] = centre.y - (viewBox[3]/2)
-            return {
-                viewBox
-            }
-        })
-    }
-
     /**
      * Log which countries are clicked -
      * useful to fade out previously selected country
@@ -173,36 +166,41 @@ class SvgWorld extends Component {
      * SVG map zoom (and panning wrapper) function.
      * Change either just the zoom level or if a bounding box param is also supplied,
      * animate the zooming and panning to the specified coords. Additionally, adjust
-     * so that the bounding box is approx 1/3 of the viewport height but to a
+     * so that the bounding box is expanded to approx 1/3 of the viewport height but to a
      * minimum zoom level of .15 (set by constant ZOOM).
+     * Note: boundingBox is the bounding rectangle of the country shape in the SVG.
+     * Note: zoom param is disregarded if param boundingBox supplied, i.e. only
+     * supplying a zoom integer will cause an unanimated zoom "jump"
      * @param {int} zoom
      * @param {{x:int}, {y:int}, {width:int}, {height:int},{strokeWidth:int}} boundingBox
      * @return void
      */
-    handleZoomChange = (zoom, boundingBox) => {
+    handleZoomChange = (zoom, boundingBox, reset=false) => {
 
-        /* animation if both non null params */
-        if (zoom && boundingBox) {
+        const { width, height } = this.state
+
+        if (reset) {
+            boundingBox = { x: 0, y: 0, width, height }
+        }
+
+        /* animation if non null boundingBox param */
+        if (boundingBox) {
             this.setState({ boundingBox: {...boundingBox} })
             this.boundingBox = {...boundingBox}
 
-            /* if boundingBox height > 1/3 of viewport height, use a zoom > .15 */
-            /* so that boundingBox is ~ 1/3 height */
-            const { height } = this.state
-            // console.log(148, {
-            //     'this.boundingBox.height': this.boundingBox.height,
-            //     'this.boundingBox.height * 3': this.boundingBox.height * 3,
-            //     height,
-            //     ZOOM,
-            //     'height * ZOOM': height * ZOOM,
-            // })
-            if (this.boundingBox.height * 3 > height * ZOOM) {
-                this.percent = (this.boundingBox.height * 2)/height
+            /* if boundingBox height > 1/MAX_BOUNDING_RECT_FACTOR of viewport height, use a zoom > .15 */
+            /* so that boundingBox is ~ 1/MAX_BOUNDING_RECT_FACTOR height */
+            if (this.boundingBox.height * MAX_BOUNDING_RECT_FACTOR > height * ZOOM) {
+                this.percent = reset
+                    ? 1 /* override if reset */
+                    : (this.boundingBox.height * MAX_BOUNDING_RECT_FACTOR)/height
             }
-            // console.log(150, {'this.percent': this.percent})
+            // console.log(224, {'this.percent': this.percent})
             return this.animateZoom()
         }
 
+        /* this point only reached if not reset or boundingBox was passed in */
+        /* this will simply zoom the map without animation */
         boundingBox = boundingBox ? boundingBox : this.state.boundingBox
         zoom = zoom ? (zoom || 1)/100 : this.state.zoom
         zoom = zoom !== false && zoom <= 0 ? 1 : zoom /* circular: if < 0 reset to 1 */
@@ -244,7 +242,8 @@ class SvgWorld extends Component {
             this.started = new Date().valueOf()
 
             /* calculate target width (height will be derived from width) */
-            this.targetWidth = width * (this.percent || 0.5)
+            // this.targetWidth = width * (this.percent || 0.5)
+            this.targetWidth = width * (this.percent || 1)
 
             this.startCentreX = this.targetCentreX ? this.targetCentreX : width / 2
             this.startCentreY = this.targetCentreY ? this.targetCentreY : height / 2
@@ -266,7 +265,6 @@ class SvgWorld extends Component {
             //     startWidth: this.startWidth,
             //     startHeight: this.startHeight,
             //     targetWidth: this.targetWidth,
-            //     targetHeight: this.targetHeight,
             // })
         }
 
@@ -275,6 +273,7 @@ class SvgWorld extends Component {
 
         /* calculate graduation based on width */
         let w = this.startWidth - ((this.startWidth - this.targetWidth) * (this.elapsed / this.ms))
+        w = w > width ? width : w /* prevent being expanded over svg width */
         let h = (w/this.startWidth) * this.startHeight
         const zoom = w/width < 1 ? w/width : 1
 
@@ -343,6 +342,50 @@ class SvgWorld extends Component {
         window.requestAnimationFrame(this.animateZoom)
     }
 
+    animateZoomReset = () => {
+        const { viewBox, width, height } = this.state
+        const [, , viewBoxWidth, viewBoxHeight] = [...viewBox] /* shallow copy of currently set viewbox */
+
+        /* initialize the class scope vars used in the animation */
+        if (this.started === null) {
+            this.started = new Date().valueOf()
+
+            /* if width and height values of viewbox have already been set use them, */
+            /* else if first time, use the svg original width and height values */
+            this.startWidth  = viewBoxWidth  ? viewBoxWidth  : width
+            this.startHeight = viewBoxHeight ? viewBoxHeight : height
+        }
+        this.elapsed = new Date().valueOf() - this.started
+
+        /* calculate graduation based on width */
+        let w = this.startWidth - ((this.startWidth - this.targetWidth) * (this.elapsed / this.ms))
+        let h = (w/this.startWidth) * this.startHeight
+        const zoom = w/width < 1 ? w/width : 1
+        const [x, y] = [w, h].map(e => e * zoom)
+
+        this.setState(prevState => {
+            let { viewBox } = prevState
+            viewBox[0] = x
+            viewBox[1] = y
+            viewBox[2] = w
+            viewBox[3] = h
+            return {
+                viewBox,
+                zoom,
+            }
+        })
+
+        /* exit animation loop */
+        if (this.elapsed > (this.ms*(1.05))) {
+            this.elapsed = 0
+            this.started = null
+            this.percent = ZOOM
+            return
+        }
+        /* re-enter animation loop */
+        window.requestAnimationFrame(this.animateZoomReset)
+    }
+
     render() {
 
         const {
@@ -375,29 +418,8 @@ class SvgWorld extends Component {
 
         const countryRectProps = {...boundingBox, strokeWidth: 0.1}
 
-        // const zoomerMinus = zoom === 1
-        const classZoomerPlus = zoom <= .15 ? 'zoomerPlus0' : 'zoomerPlus'
-        const classZoomerMinus = zoom >= 1 ? 'zoomerMinus0' : 'zoomerMinus'
-
-        /* zoom in i.e. decrease zoom value */
-        const handleZoomPlus = zoom > .15
-            ? () => {
-                const zoomTo = (Math.round(zoom*100)/100)*90
-                this.handleZoomChange(zoomTo < 15 ? 15 : zoomTo)
-            }
-            : null
-        /* zoom OUT i.e. increase zoom value */
-        const handleZoomMinus = zoom < 1
-            ? () => {
-                const zoomTo = (Math.round(zoom*100)/100)*110
-                this.handleZoomChange(zoomTo > 100 ? 100 : zoomTo)
-            }
-            : null
-
         return (
-            <MainContainer
-                mainTitle={mainTitle}
-            >
+            <MainContainer mainTitle={mainTitle}>
                 <Loading
                     len={len}
                     total={total}
@@ -419,11 +441,11 @@ class SvgWorld extends Component {
                     </div>
 
                     <div className={'svg-cont'}>
-                        <div className={'zoomer'}>
-                            <div className={'zoomerPc'}>{zoom && Math.round(zoom*100) + '%'}</div>
-                            <div className={classZoomerMinus} onClick={handleZoomMinus}>{'\u2012'}</div>
-                            <div className={classZoomerPlus} onClick={handleZoomPlus}>{'\u002B'}</div>
-                        </div>
+                        <Zoomer
+                            zoom={zoom}
+                            handleZoomChange={this.handleZoomChange}
+                            reset={() => { this.init(true)}}
+                        />
                         <svg
                             width={width}
                             height={height}
@@ -475,11 +497,6 @@ class SvgWorld extends Component {
                                             : GREY
                                     if (!id) return false
 
-                                    // const transform = (id === selected)
-                                    //     // ? 'rotate(-10 50 100) translate(-36, 45) skewX(40) scale(1.5 1.5)'
-                                    //     // ? 'scale(1.5 1.5) translate(-36, 45)'
-                                    //     ? `matrix(1.5, 0, 0, 1.5, ${-x/2}, ${-y/2})` /* make shape 1.5 times bitter */
-                                    //     : ''
                                     let _strokeWidth = strokeWidth
                                     let _stroke = stroke
                                     _strokeWidth = (id === selected) ? .1 : strokeWidth
@@ -492,10 +509,8 @@ class SvgWorld extends Component {
                                             key={i + '-' + id}
                                             id={id}
                                             ref={countryRefs[id] && countryRefs[id]}
-                                            // transform={transform}
                                         >
                                             <path
-                                                // className={'draw'}
                                                 id={`layer-${(id||'missing').toLowerCase()}`}
                                                 fill={fill}
                                                 stroke={_stroke}
