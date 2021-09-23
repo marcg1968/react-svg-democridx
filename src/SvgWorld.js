@@ -176,7 +176,7 @@ class SvgWorld extends Component {
      * so that the bounding box is approx 1/3 of the viewport height but to a
      * minimum zoom level of .15 (set by constant ZOOM).
      * @param {int} zoom
-     * @param {{x:int}, {y:int}, {width:int}, {height:int},{sw:int}} boundingBox
+     * @param {{x:int}, {y:int}, {width:int}, {height:int},{strokeWidth:int}} boundingBox
      * @return void
      */
     handleZoomChange = (zoom, boundingBox) => {
@@ -211,7 +211,7 @@ class SvgWorld extends Component {
         this.setState(prevState => {
             let { viewBox, width, height } = prevState
             /* if no country selected, i.e. boundingBox is null, make it full size */
-            boundingBox = (boundingBox === null) ? { x: 0, y: 0, width, height, sw: 0 } : boundingBox
+            boundingBox = (boundingBox === null) ? { x: 0, y: 0, width, height, strokeWidth: 0 } : boundingBox
             const centre = {
                 x: boundingBox.x + (boundingBox.width/2),
                 y: boundingBox.y + (boundingBox.height/2)
@@ -258,7 +258,7 @@ class SvgWorld extends Component {
             this.startHeight = viewBoxHeight ? viewBoxHeight : height
 
             // console.log(222, {
-            //     _viewBox,
+            //     viewBoxWidth, viewBoxHeight,
             //     targetCentreX: this.targetCentreX,
             //     targetCentreY: this.targetCentreY,
             //     startCentreX: this.startCentreX,
@@ -278,17 +278,34 @@ class SvgWorld extends Component {
         let h = (w/this.startWidth) * this.startHeight
         const zoom = w/width < 1 ? w/width : 1
 
-        // console.log(252, {
-        //     w, h,
-        //     // growthX, growthY,
-        //     zoom: Math.round(zoom * 1000)/1000,
-        //     pc: Math.round((this.elapsed / this.ms)*1000)/10,
-        // })
-
         const centre = {
             x: this.startCentreX + ((this.targetCentreX - this.startCentreX) / this.ms) * this.elapsed,
             y: this.startCentreY + ((this.targetCentreY - this.startCentreY) / this.ms) * this.elapsed
         }
+        /* check centre values don't exceed (if increasing) or go below (if decreasing) target */
+        if (
+                (this.targetCentreX >= this.startCentreX && centre.x > this.targetCentreX)
+            ||  (this.targetCentreX <= this.startCentreX && centre.x < this.targetCentreX)
+        ) {
+            // console.log(293, 'corrected centre.x')
+            centre.x = this.targetCentreX
+        }
+        if (
+                (this.targetCentreY >= this.startCentreY && centre.y > this.targetCentreY)
+            ||  (this.targetCentreY <= this.startCentreY && centre.y < this.targetCentreY)
+        ) {
+            // console.log(300, 'corrected centre.y')
+            centre.y = this.targetCentreY
+        }
+
+        // console.log(285, {
+        //     w, h,
+        //     // growthX, growthY,
+        //     x: centre.x,
+        //     y: centre.y,
+        //     zoom: Math.round(zoom * 1000)/1000,
+        //     pc: Math.round((this.elapsed / this.ms)*1000)/10,
+        // })
 
         this.setState(prevState => {
             let { viewBox } = prevState
@@ -302,7 +319,21 @@ class SvgWorld extends Component {
             }
         })
         /* exit animation loop and reset certain values */
-        if (this.elapsed >= 3000) {
+        /* allow it to run slighly longer than max time specified */
+        /* this allows for the illusion of a slightly correcting shifting movement at the end */
+        if (this.elapsed > (this.ms*(1.05))) {
+            // console.log(306, {
+            //     elapsed: this.elapsed,
+            //     viewBoxWidth, viewBoxHeight,
+            //     targetCentreX: this.targetCentreX,
+            //     targetCentreY: this.targetCentreY,
+            //     centre,
+            //     startCentreX: this.startCentreX,
+            //     startCentreY: this.startCentreY,
+            //     startWidth: this.startWidth,
+            //     startHeight: this.startHeight,
+            //     targetWidth: this.targetWidth,
+            // })
             this.elapsed = 0
             this.started = null
             this.percent = ZOOM
@@ -342,7 +373,7 @@ class SvgWorld extends Component {
 
         const [, typ] = breakpoints.filter(([val, typ]) => rating < val).shift()
 
-        const countryRectProps = {...boundingBox, sw: 0.1}
+        const countryRectProps = {...boundingBox, strokeWidth: 0.1}
 
         // const zoomerMinus = zoom === 1
         const classZoomerPlus = zoom <= .15 ? 'zoomerPlus0' : 'zoomerPlus'
@@ -533,7 +564,7 @@ const MainContainer = props => {
 
 const CountryRect = props => {
 
-    let { x=0, y=0, width=0, height=0, sw=0.5 } = props
+    let { x=0, y=0, width=0, height=0, strokeWidth=0.5 } = props
 
     const dx = -.003 * x
     const dy = -.002 * x
@@ -546,7 +577,7 @@ const CountryRect = props => {
         <rect
             x={x} y={y} width={width} height={height}
             stroke={'crimson'}
-            strokeWidth={sw}
+            strokeWidth={strokeWidth}
             fill={'transparent'}
         />
     )

@@ -32,6 +32,24 @@ const CountryListing = props => {
         ,
     }
 
+    /* only carry out click function if country not currently selected */
+    const handleClick = selected
+        ? null
+        : (e) => {
+            const { dataset } = e.target || {}
+            const { countryid } = dataset || {}
+            if (!countryid) return
+            const {current} = countryRefs[countryid] || {}
+            // console.log(66, current)
+            if (current) {
+                const {x, y, width, height} = current.getBBox()
+                // console.log(69, {x, y, width, height})
+                const boundingBox = { x, y, width, height, strokeWidth: 0.3 }
+                handleZoomChange(50, boundingBox)
+            }
+            trackCountriesClicked(countryid)
+        }
+
     return (
         <section>
             <div style={{...styles.title}}>{title}</div>
@@ -59,6 +77,8 @@ const CountryListing = props => {
                             <div
                                 key={country.id}
                                 title={country.n}
+                                data-countryid={country.id}
+                                data-selected={selected}
                                 style={{
                                     ...{
                                         background: bgCol,
@@ -67,27 +87,7 @@ const CountryListing = props => {
                                     },
                                     ...borderAndPadding
                                 }}
-                                onClick={() => {
-                                    // console.log(country.paths)
-                                    if ('id' in country && country.id in countryRefs) {
-                                        // console.log(623, countryRefs[country.id])
-                                        const {current} = countryRefs[country.id] || {}
-                                        // console.log(625, current)
-                                        if (current) {
-                                            const {x, y, width, height} = current.getBBox()
-                                            // console.log(628, {x, y, width, height})
-                                            const boundingBox = {
-                                                x,
-                                                y,
-                                                width,
-                                                height,
-                                                sw: 0.3,
-                                            }
-                                            handleZoomChange(50, boundingBox)
-                                        }
-                                    }
-                                    trackCountriesClicked(country.id)
-                                }}
+                                onClick={handleClick}
                             >
                                 {countryName}
                             </div>
