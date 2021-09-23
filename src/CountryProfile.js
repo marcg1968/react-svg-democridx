@@ -23,7 +23,13 @@ const CountryProfile = props => {
         : null
 
     return (
-        <aside className={'svg-country-profile'}>
+        <aside
+            className={'svg-country-profile'}
+            style={{
+                transition: 'opacity 2s ease-in-out',
+                opacity: selected ? 1 : 0,
+            }}
+        >
             {selected && (
                 <div
                     className={'svg-country-profile-sel'}

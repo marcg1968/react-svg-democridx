@@ -91,9 +91,7 @@ class SvgWorld extends Component {
         } = this.props
 
         if (reset) {
-            console.log(96, {props: this.props})
             this.setState({ selected: null })
-            // return this.handleZoomChange(100, {x:0, y:0, width, height})
             return this.handleZoomChange(0, {}, true)
         }
 
@@ -160,8 +158,6 @@ class SvgWorld extends Component {
         })
     }
 
-    /* WORKING: */
-    /* also sets boundingBox */
     /**
      * SVG map zoom (and panning wrapper) function.
      * Change either just the zoom level or if a bounding box param is also supplied,

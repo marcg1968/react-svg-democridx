@@ -1,6 +1,5 @@
 // CountryListing.js
 
-import { useEffect } from 'react'
 import {
     abbrevCountryName,
 } from './functions'
@@ -18,16 +17,7 @@ const CountryListing = props => {
         title='Country list'
     } = props
 
-    // /* show which of these props have changed */
-    // // useEffect(() => { console.log({countries}) }, [countries])
-    // useEffect(() => { console.log({selected}) }, [selected])
-    // useEffect(() => { console.log({colour}) }, [colour])
-    // useEffect(() => { console.log({countryRefs}) }, [countryRefs])
-    // useEffect(() => { console.log({handleZoomChange}) }, [handleZoomChange])
-    // useEffect(() => { console.log({trackCountriesClicked}) }, [trackCountriesClicked])
-
     if (countries===null) return null
-    // console.log(576, {selected, colour})
 
     const styles = {
         title: {
@@ -38,19 +28,15 @@ const CountryListing = props => {
         countries: {
             display: 'flex', flexWrap: 'wrap',
         }
-        ,
     }
 
     const handleClick = (e) => {
         const { dataset } = e.target || {}
         const { countryid } = dataset || {}
-        // if (!countryid) return
         if (!countryid || selected === countryid) return /* only carry out click function if country not currently selected */
         const {current} = countryRefs[countryid] || {}
-        // console.log(66, current)
         if (current) {
             const {x, y, width, height} = current.getBBox()
-            // console.log(69, {x, y, width, height})
             const boundingBox = { x, y, width, height, strokeWidth: 0.3 }
             handleZoomChange(50, boundingBox)
         }
