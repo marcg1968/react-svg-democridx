@@ -20,6 +20,7 @@ import {
     strokeWidth,
     totalLoadingTimeMs,
     ZOOM,
+    ZOOM_ANIMATION_MS,
 } from './constants'
 import Heatmap from './Heatmap'
 import Loading from './Loading'
@@ -49,7 +50,7 @@ class SvgWorld extends Component {
         /* vars used in zoom animation */
         this.elapsed = 0
         this.started = null
-        this.ms = 3000
+        this.ms = ZOOM_ANIMATION_MS // 3000
         this.percent = ZOOM
         this.startWidth = 0
         this.targetWidth = 0
@@ -146,7 +147,12 @@ class SvgWorld extends Component {
         })
     }
 
-    handleZoomChangeUpateState = country_id => {
+    /**
+     * Log which countries are clicked -
+     * useful to fade out previously selected country
+     * @param {string} country_id
+     */
+    trackCountriesClicked = country_id => {
         this.setState(prevState => {
             const selectedHistory = prevState.selected
                 ? [
@@ -163,6 +169,16 @@ class SvgWorld extends Component {
 
     /* WORKING: */
     /* also sets boundingBox */
+    /**
+     * SVG map zoom (and panning wrapper) function.
+     * Change either just the zoom level or if a bounding box param is also supplied,
+     * animate the zooming and panning to the specified coords. Additionally, adjust
+     * so that the bounding box is approx 1/3 of the viewport height but to a
+     * minimum zoom level of .15 (set by constant ZOOM).
+     * @param {int} zoom
+     * @param {{x:int}, {y:int}, {width:int}, {height:int},{sw:int}} boundingBox
+     * @return void
+     */
     handleZoomChange = (zoom, boundingBox) => {
 
         /* animation if both non null params */
@@ -212,20 +228,23 @@ class SvgWorld extends Component {
         })
     }
 
+    /**
+     * Animate the panning and zooming of the SVG map using
+     * requestAnimationFrame loop.
+     * DO NOT call directly but from method handleZoomChange.
+     * Uses class scape variables.
+     * @return void
+     */
     animateZoom = () => {
         const { viewBox, width, height } = this.state
-        const _viewBox = [...viewBox] /* shallow copy */
+        const [, , viewBoxWidth, viewBoxHeight] = [...viewBox] /* shallow copy of currently set viewbox */
 
-        /* initialize */
+        /* initialize the class scope vars used in the animation */
         if (this.started === null) {
             this.started = new Date().valueOf()
-            /* target width/height */
-            const [w2, h2] = [width, height].map(e => (this.percent || 0.5) * e)
 
-            // console.log(177, {w2, h2, boundingBox: this.boundingBox})
-            // console.log(178, {_viewBox: [...viewBox].join(' ')})
-            this.targetWidth = w2
-            this.targetHeight = h2
+            /* calculate target width (height will be derived from width) */
+            this.targetWidth = width * (this.percent || 0.5)
 
             this.startCentreX = this.targetCentreX ? this.targetCentreX : width / 2
             this.startCentreY = this.targetCentreY ? this.targetCentreY : height / 2
@@ -235,9 +254,8 @@ class SvgWorld extends Component {
 
             /* if width and height values of viewbox have already been set use them, */
             /* else if first time, use the svg original width and height values */
-            // console.log(183, { width, height })
-            this.startWidth  = _viewBox[2] ? _viewBox[2] : width
-            this.startHeight = _viewBox[3] ? _viewBox[3] : height
+            this.startWidth  = viewBoxWidth  ? viewBoxWidth  : width
+            this.startHeight = viewBoxHeight ? viewBoxHeight : height
 
             // console.log(222, {
             //     _viewBox,
@@ -363,7 +381,7 @@ class SvgWorld extends Component {
                             colour={colour}
                             countryRefs={countryRefs}
                             handleZoomChange={this.handleZoomChange}
-                            handleZoomChangeUpateState={this.handleZoomChangeUpateState}
+                            trackCountriesClicked={this.trackCountriesClicked}
                             fontSize={.8}
                             baseSpacing={.15}
                         />

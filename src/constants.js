@@ -9,6 +9,7 @@ export const BLACK = '#000000ff'
 export const strokeWidth = 0.5
 export const stroke = "#FFFFFF"
 export const ZOOM = .15
+export const ZOOM_ANIMATION_MS = 3000
 export const SVG_WIDTH = 1000
 export const SVG_HEIGHT = 428 /* 507.209 would include Antarctica */
 export const MAX_NAME_LEN = 25

@@ -11,7 +11,7 @@ const CountryListing = props => {
 
     const {
         countries, selected, colour, countryRefs,
-        handleZoomChange, handleZoomChangeUpateState,
+        handleZoomChange, trackCountriesClicked,
         baseSpacing=.25,
         fontSize=1,
         title='Country list'
@@ -34,9 +34,7 @@ const CountryListing = props => {
 
     return (
         <section>
-            <div style={{...styles.title}}>
-                {title}
-            </div>
+            <div style={{...styles.title}}>{title}</div>
             <div style={{...styles.countries}}>
                 {countries
                     .filter(e => e.n) /* filter out elements without n (=name) */
@@ -88,7 +86,7 @@ const CountryListing = props => {
                                             handleZoomChange(50, boundingBox)
                                         }
                                     }
-                                    handleZoomChangeUpateState(country.id)
+                                    trackCountriesClicked(country.id)
                                 }}
                             >
                                 {countryName}
