@@ -10,6 +10,7 @@ import {
     SVG_HEIGHT,
     SVG_WIDTH,
 } from './constants'
+import { DemoHr } from './Builders'
 
 const App = () => {
 
@@ -58,6 +59,14 @@ const App = () => {
                         <a href={'https://www.eiu.com/n/campaigns/democracy-index-2020/'}>{'https://www.eiu.com/n/campaigns/democracy-index-2020/'}</a>
                     </li>
                 </ul>
+
+                <DemoHr />
+                
+                <p>
+                    <a href="https://www.marcgreyling.com/this_site" title="EN">Imprint</a>
+                    &nbsp;|&nbsp;
+                    <a href="https://www.marcgreyling.com/this_site" title="DE">Impressum</a>
+                </p>
             </footer>
 
         </div>

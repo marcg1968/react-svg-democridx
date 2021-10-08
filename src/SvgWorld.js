@@ -15,7 +15,9 @@ import {
     CRIMSON,
     CRIMSON_HALF,
     GREY,
-    mainTitle, MAX_BOUNDING_RECT_FACTOR, progressiveLoading,
+    mainTitle,
+    MAX_BOUNDING_RECT_FACTOR,
+    progressiveLoading,
     stroke,
     strokeWidth,
     totalLoadingTimeMs,
@@ -27,6 +29,7 @@ import Loading from './Loading'
 import CountryListing from './CountryListing'
 import CountryProfile from './CountryProfile'
 import Zoomer from "./Zoomer";
+import DemoModal from './DemoModal'
 
 class SvgWorld extends Component {
 
@@ -46,6 +49,7 @@ class SvgWorld extends Component {
             viewBox: [0, 0, 0, 0],
             boundingBox: null,
             zoom: 1,
+            showDemoModal: true,
         }
 
         /* vars used in zoom animation */
@@ -282,22 +286,21 @@ class SvgWorld extends Component {
                 (this.targetCentreX >= this.startCentreX && centre.x > this.targetCentreX)
             ||  (this.targetCentreX <= this.startCentreX && centre.x < this.targetCentreX)
         ) {
-            // console.log(293, 'corrected centre.x')
             centre.x = this.targetCentreX
         }
         if (
                 (this.targetCentreY >= this.startCentreY && centre.y > this.targetCentreY)
             ||  (this.targetCentreY <= this.startCentreY && centre.y < this.targetCentreY)
         ) {
-            // console.log(300, 'corrected centre.y')
             centre.y = this.targetCentreY
         }
 
         // console.log(285, {
-        //     w, h,
+        //     w: w.toString().substr(0, 8),
+        //     h: h.toString().substr(0, 8),
         //     // growthX, growthY,
-        //     x: centre.x,
-        //     y: centre.y,
+        //     x: centre.x.toString().substr(0, 8),
+        //     y: centre.y.toString().substr(0, 8),
         //     zoom: Math.round(zoom * 1000)/1000,
         //     pc: Math.round((this.elapsed / this.ms)*1000)/10,
         // })
@@ -396,6 +399,7 @@ class SvgWorld extends Component {
             boundingBox,
             zoom,
             ranking,
+            showDemoModal,
         } = this.state
         let {
             width,
@@ -422,6 +426,18 @@ class SvgWorld extends Component {
                     loadingText={'Loading ...'}
                     loadedText={'Loaded.'}
                 />
+                <DemoModal
+                    show={showDemoModal}
+                    onClose={() => { this.setState({ showDemoModal: !this.state.showDemoModal }) }}
+                >
+                    <p>
+                        {'This is a demonstration website and should NOT be used for reference purposes.'}
+                   </p>
+                    <p>
+                        {'Policies on cookie usage, data protection and imprint details are '}
+                        <a href="https://www.marcgreyling.com/this_site">available here</a>.
+                    </p>
+                </DemoModal>
                 <div className={'svgmap-cont'}>
                     <div className={'svg-countrylist'}>
                         <CountryListing
@@ -433,6 +449,7 @@ class SvgWorld extends Component {
                             trackCountriesClicked={this.trackCountriesClicked}
                             fontSize={.8}
                             baseSpacing={.15}
+                            paddingBottom={.7}
                         />
                     </div>
 
@@ -595,4 +612,3 @@ const CountryRect = props => {
 }
 
 export default SvgWorld
-

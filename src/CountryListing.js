@@ -13,6 +13,7 @@ const CountryListing = props => {
         countries, selected, colour, countryRefs,
         handleZoomChange, trackCountriesClicked,
         baseSpacing=.25,
+        paddingBottom=.25,
         fontSize=1,
         title='Country list'
     } = props
@@ -24,6 +25,7 @@ const CountryListing = props => {
             fontSize: `${fontSize*1.1}rem`,
             fontWeight: 'bolder',
             padding: `${baseSpacing*2}rem`,
+            paddingBottom: `${paddingBottom}rem`,
         },
         countries: {
             display: 'flex', flexWrap: 'wrap',
