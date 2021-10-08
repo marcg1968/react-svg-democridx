@@ -103,3 +103,6 @@ fabric.properties
 
 
 
+
+# Local Netlify folder
+.netlify
