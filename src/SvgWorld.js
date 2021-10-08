@@ -563,7 +563,12 @@ class SvgWorld extends Component {
 
                 </div>
 
-                <Heatmap />
+                {/* <Heatmap rating={.6}/> */}
+                <Heatmap
+                    rating={rating ? rating : 0}
+                    selected={selected}
+                    countries={countries}
+                />
 
             </MainContainer>
         )

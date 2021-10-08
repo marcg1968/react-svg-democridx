@@ -106,3 +106,30 @@ export const DemoHr = styled.hr`
     background-color: #333;
     margin: 2.5rem 0 .67rem 0;
 `
+
+export const HeatMapScaleOuter = styled.div`
+    position: relative;
+    margin: 0;
+    height: 1.5rem;
+    background: rgba(185, 185, 185, .5);
+    display: flex;
+`
+
+export const HeatMapScaleInner = styled.div`
+    background: #fff;
+    height: 1.5rem;
+    // height: 5.5rem;
+    // width: 75%;
+    width: ${props => props.rating ? (100 - (props.rating*100)) : 0 }%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-left: ${props => props.rating ? 1 : 0 }px solid #333;
+    text-align: left;
+
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(185, 185, 185, .5);
+`
