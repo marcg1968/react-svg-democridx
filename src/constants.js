@@ -21,6 +21,12 @@ export const breakpoints = [
     [.8, 'flawed democracy'],
     [1, 'full democracy'],
 ]
+export const breakpointsPlural = [
+    [.4, 'authoritarian'],
+    [.6, 'hybrid regimes'],
+    [.8, 'flawed democracies'],
+    [1, 'full democracies'],
+]
 /* JSON source files: in public/ subdir */
 export const countriesSVGDataJson = 'countries.json'
 export const democIdxJson = 'worldbank_democracy_index.json'

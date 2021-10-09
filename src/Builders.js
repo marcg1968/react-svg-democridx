@@ -133,3 +133,78 @@ export const HeatMapScaleInner = styled.div`
     flex-direction: column;
     background: rgba(185, 185, 185, .5);
 `
+
+export const HeatmapContainer = styled.div.attrs(({ col }) => ({
+    col: col || 0
+}))`
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    background: transparent;
+    ${({ col }) => col && `
+        background: rgba(185, 185, 185, .5);
+    `}
+    
+`
+
+const heatmap = n => {
+    // background: linear-gradient(to right, hsl(0, 100%, 50%), hsl(47, 100%, 50%) 100%);
+    // background: linear-gradient(to right, hsl(48, 100%, 50%), hsl(95, 100%, 50%) 100%);
+    // background: linear-gradient(to right, hsl(96, 100%, 50%), hsl(143, 100%, 50%) 100%);
+    // background: linear-gradient(to right, hsl(144, 100%, 50%), hsl(195, 100%, 50%) 100%);
+    // background: linear-gradient(to right, hsl(196, 100%, 50%), hsl(240, 100%, 50%) 100%);
+    n = n || 0
+    let start, end
+    switch (n) {
+        case 1: start = 0;   end = 47;  break;
+        case 2: start = 48;  end = 95;  break;
+        case 3: start = 96;  end = 143; break;
+        case 4: start = 144; end = 195; break;
+        case 5: start = 196; end = 240; break;
+        case 6: start = 0;   end = 240; break;
+        default:
+        case 0:
+            return 'linear-gradient(to right, rgb(255, 0, 0), rgb(255, 200, 0) 100%);'
+    }
+    return `linear-gradient(to right, hsl(${start}, 100%, 50%), hsl(${end}, 100%, 50%) 100%);`
+} 
+
+export const HeatmapCol = styled.div.attrs(({ col, border, hangright, borderleft, marginleft, bgcol }) => ({
+    col: col || false,
+    border: border || false,
+    hangright: hangright || false,
+    borderleft: borderleft || false,
+    marginleft: marginleft || false,
+    bgcol: bgcol || false,
+}))`
+    // border: ${props => props.col ? props.col : 0 }px solid crimson;
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(185, 185, 185, .5);
+    padding-bottom: .5rem;
+    text-align: ${({hangright}) => hangright ? 'right' : 'left'};
+    
+    // background: ${props => props.col ? heatmap(props.col) : ''};
+    ${({ col }) => col && `
+         background: ${heatmap(col)};
+    `}
+    ${({ col }) => col < 0 && `
+         background: transparent;
+    `}
+    ${({ border }) => border && `
+        border: 1px solid #333;
+    `}
+    ${({ marginleft }) => marginleft && `
+        // margin-left: 1rem;
+        margin-left: ${marginleft}rem;
+        // border: 1px solid cyan;
+    `}
+    ${({ borderleft }) => borderleft && `
+        border-left: 1px solid #343536;
+        // margin-left: 0.2rem;
+        padding-left: 0.67rem;
+    `}
+`
+
+
